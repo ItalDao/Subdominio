@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  alcivar:
+    image: alcivar:1.0.1
+    deploy:
+      replicas: 1
+      labels:
+        - 'traefik.enable=true'
+        - 'traefik.http.routers.alcivar.entrypoints=http'
+        - 'traefik.http.routers.alcivar.rule=Host(`alcivar.byronrm.com`)'
+        - 'traefik.http.middlewares.alcivar-https-redirect.redirectscheme.scheme=https'
+        - 'traefik.http.routers.alcivar.middlewares=alcivar-https-redirect'
+        - 'traefik.http.routers.alcivar-secure.entrypoints=https'
+        - 'traefik.http.routers.alcivar-secure.rule=Host(`alcivar.byronrm.com`)'
+        - 'traefik.http.routers.alcivar-secure.tls=true'
+        - 'traefik.http.routers.alcivar-secure.tls.certresolver=http'
+        - 'traefik.http.routers.alcivar-secure.service=alcivar'
+        - 'traefik.http.services.alcivar.loadbalancer.server.port=1001'
+        - 'traefik.docker.network=traefik-public'
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true
