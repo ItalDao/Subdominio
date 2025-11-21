@@ -192,4 +192,4 @@ def contact():
     return redirect(url_for("index") + "#contact")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=1001, debug=False)
+    app.run(host="0.0.0.0", port=1737, debug=False)

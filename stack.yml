@@ -16,7 +16,7 @@ services:
         - 'traefik.http.routers.alcivar-secure.tls=true'
         - 'traefik.http.routers.alcivar-secure.tls.certresolver=http'
         - 'traefik.http.routers.alcivar-secure.service=alcivar'
-        - 'traefik.http.services.alcivar.loadbalancer.server.port=1001'
+        - 'traefik.http.services.alcivar.loadbalancer.server.port=1737'
         - 'traefik.docker.network=traefik-public'
     networks:
       - traefik-public
