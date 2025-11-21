@@ -13,5 +13,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Exponer el puerto
 EXPOSE 1737
 
-# Ejecutar la aplicación 
+# Ejecutar la aplicación      
 CMD ["python","app.py"]
