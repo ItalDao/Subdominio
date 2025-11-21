@@ -102,7 +102,7 @@ jobs:
           port: ${{ secrets.VPS_SSH_PORT }}
           script: |
             echo "Desplegando servicios"
-            cd ~/deploy
+            cd ~/deploy313
   
             echo "Descargando la imagen desde GHCR"
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u italdao --password-stdin
