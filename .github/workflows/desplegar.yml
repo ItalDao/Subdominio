@@ -105,7 +105,7 @@ jobs:
             cd ~/deploy313
   
             echo "Descargando la imagen desde GHCR"
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u italdao --password-stdin
+            echo "${{ secrets.GHCR_PATH }}" | docker login ghcr.io -u italdao --password-stdin
             docker pull ghcr.io/italdao/alcivar:1.0.1
   
             STACK_NAME="alcivar"
