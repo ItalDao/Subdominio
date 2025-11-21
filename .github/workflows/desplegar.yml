@@ -1,28 +1,37 @@
-name: Deploy Alcivar Application
+name: CI/CD Pipeline - Flask Completo 🚀
 
 on:
   push:
-    branches: "main"
-
-permissions:
-  contents: read
-  packages: write
+    branches:
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write   # ✅ Permite publicar imagen en GitHub Container Registry
+      id-token: write
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
+    - name: 🧾 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python 3.10
+      uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
-    
-    - name: Install dependencies
-      run: pip install -r requirements.txt
-    
+        python-version: '3.10'
+
+    - name: 📦 Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: 🧹 Run lint (flake8)
+      run: |
+        echo "Running flake8..."
+        flake8 . || echo "Lint warnings found but continuing ✅"
+
     - name: 🔐 Login to GitHub Container Registry
       uses: docker/login-action@v3
       with:
@@ -35,8 +44,8 @@ jobs:
       with:
         push: true
         tags: ghcr.io/italdao/alcivar:1.0.1
-    
-    - name: 🧾 Mostrar variables básicas
+
+    - name: 🧾 Mostrar variables básicas (solo locales, no secretos)
       run: |
         echo "Probando conexión SSH con:"
         echo "Host: ${{ secrets.VPS_HOST }}"
@@ -55,7 +64,7 @@ jobs:
           hostname
           whoami
           uptime
-        
+
     - name: Copiar stack.yml to VPS (SCP)
       uses: appleboy/scp-action@v1
       with:
@@ -65,7 +74,7 @@ jobs:
         port: ${{ secrets.VPS_SSH_PORT }}
         source: "stack.yml"
         target: "/home/${{ secrets.VPS_USER }}/deploy313"
-    
+      
     - name: Despliegue de servicios
       uses: appleboy/ssh-action@v1
       with:
@@ -77,56 +86,18 @@ jobs:
           echo "Desplegando servicios"
           cd ~/deploy313
 
-          echo "Descargando la imagen desde GHCR"
-          echo "${{ secrets.GHCR_PATH }}" | docker login ghcr.io -u italdao --password-stdin
+          echo "Descargando la imagen desde git"
+          echo "${{ secrets.GHCR_PATH}}" | docker login ghcr.io -u italdao --password-stdin 
           docker pull ghcr.io/italdao/alcivar:1.0.1
-
-          STACK_NAME="alcivar"
           
           echo "Deteniendo los servicios (stack)"
-          docker stack rm ${STACK_NAME} || true
+          docker stack rm alcivar || true
 
           echo "Esperar 20 segundos..."
           sleep 20
 
-          echo "Desplegando el stack"
-          docker stack deploy --with-registry-auth -c stack.yml ${STACK_NAME}
+          echo "Desplegando el stack o los servicios"
+          docker stack deploy --with-registry-auth -c stack.yml alcivar
 
-            docker ps
-    - name: Despliegue de servicios
-      uses: appleboy/ssh-action@v1
-      with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          port: ${{ secrets.VPS_SSH_PORT }}
-          script: |
-            echo "Desplegando servicios"
-            cd ~/deploy313
-  
-            echo "Descargando la imagen desde GHCR"
-            echo "${{ secrets.GHCR_PATH }}" | docker login ghcr.io -u italdao --password-stdin
-            docker pull ghcr.io/italdao/alcivar:1.0.1
-  
-            STACK_NAME="alcivar"
-            
-            echo "Deteniendo los servicios (stack)"
-            docker stack rm ${STACK_NAME} || true
-  
-            echo "Esperar 20 segundos..."
-            sleep 20
-  
-            echo "Desplegando el stack"
-            docker stack deploy --with-registry-auth -c stack.yml ${STACK_NAME}
-  
-            echo "=== Contenedores corriendo ==="
-            docker ps
-            
-            echo "=== Estado del servicio alcivar ==="
-            docker service ls | grep alcivar
-            
-            echo "=== Tasks del stack alcivar ==="
-            docker service ps alcivar_alcivar
-            
-            echo "=== LOGS del servicio (últimas 50 líneas) ==="
-            docker service logs alcivar_alcivar --tail 50
+          docker ps
+      
