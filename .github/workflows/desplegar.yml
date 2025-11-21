@@ -64,7 +64,7 @@ jobs:
         password: ${{ secrets.VPS_PASSWORD }}
         port: ${{ secrets.VPS_SSH_PORT }}
         source: "stack.yml"
-        target: "/home/${{ secrets.VPS_USER }}/deploy"
+        target: "/home/${{ secrets.VPS_USER }}/deploy313"
     
     - name: Despliegue de servicios
       uses: appleboy/ssh-action@v1
@@ -75,7 +75,7 @@ jobs:
         port: ${{ secrets.VPS_SSH_PORT }}
         script: |
           echo "Desplegando servicios"
-          cd ~/deploy
+          cd ~/deploy313
 
           echo "Descargando la imagen desde GHCR"
           echo "${{ secrets.GHCR_PATH }}" | docker login ghcr.io -u italdao --password-stdin
@@ -92,4 +92,41 @@ jobs:
           echo "Desplegando el stack"
           docker stack deploy --with-registry-auth -c stack.yml ${STACK_NAME}
 
-          docker ps
+            docker ps
+    - name: Despliegue de servicios
+      uses: appleboy/ssh-action@v1
+      with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          script: |
+            echo "Desplegando servicios"
+            cd ~/deploy
+  
+            echo "Descargando la imagen desde GHCR"
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u italdao --password-stdin
+            docker pull ghcr.io/italdao/alcivar:1.0.1
+  
+            STACK_NAME="alcivar"
+            
+            echo "Deteniendo los servicios (stack)"
+            docker stack rm ${STACK_NAME} || true
+  
+            echo "Esperar 20 segundos..."
+            sleep 20
+  
+            echo "Desplegando el stack"
+            docker stack deploy --with-registry-auth -c stack.yml ${STACK_NAME}
+  
+            echo "=== Contenedores corriendo ==="
+            docker ps
+            
+            echo "=== Estado del servicio alcivar ==="
+            docker service ls | grep alcivar
+            
+            echo "=== Tasks del stack alcivar ==="
+            docker service ps alcivar_alcivar
+            
+            echo "=== LOGS del servicio (últimas 50 líneas) ==="
+            docker service logs alcivar_alcivar --tail 50
