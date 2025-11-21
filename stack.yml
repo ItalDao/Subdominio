@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   alcivar:
-    image: alcivar:1.0.1
+    image: ghcr.io/italdao/alcivar:1.0.1
     deploy:
       replicas: 1
       labels:
